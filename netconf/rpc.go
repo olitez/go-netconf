@@ -159,6 +159,11 @@ func MethodDiscard() RawMethod {
 	return RawMethod(`<discard-changes/>`)
 }
 
+//MethodCompare files a NETCONF compare request with the remote host
+func MethodCompare() RawMethod {
+	return RawMethod(`<get-configuration compare="rollback" rollback="0" format="text"/>`)
+}
+
 var msgID = uuid
 
 // uuid generates a "good enough" uuid without adding external dependencies
