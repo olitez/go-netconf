@@ -154,6 +154,11 @@ func MethodSetConfig(config string) RawMethod {
 	return RawMethod(fmt.Sprintf(`<load-configuration action="set" format="text"><configuration-set>%s</configuration-set></load-configuration>`, config))
 }
 
+//MethodDiscard files a NETCONF discard request with the remote host
+func MethodDiscard() RawMethod {
+	return RawMethod(`<discard-changes/>`)
+}
+
 var msgID = uuid
 
 // uuid generates a "good enough" uuid without adding external dependencies
