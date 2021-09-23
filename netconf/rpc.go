@@ -164,6 +164,11 @@ func MethodCompare() RawMethod {
 	return RawMethod(`<get-configuration compare="rollback" rollback="0" format="text"/>`)
 }
 
+//MethodCompare files a NETCONF commit request with the remote host
+func MethodCommit(msg string) RawMethod {
+	return RawMethod(fmt.Sprintf(`<commit-configuration><log>%s</log></commit-configuration>`, msg))
+}
+
 var msgID = uuid
 
 // uuid generates a "good enough" uuid without adding external dependencies
