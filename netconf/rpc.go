@@ -149,6 +149,11 @@ func MethodValidate(source string) RawMethod {
 	return RawMethod(fmt.Sprintf("<validate><source><%s/></source></validate>", source))
 }
 
+// MethodSetConfig files a NETCONF set-config request with the remote host
+func MethodSetConfig(config string) RawMethod {
+	return RawMethod(fmt.Sprintf(`<load-configuration action="set" format="text"><configuration-set>%s</configuration-set></load-configuration>`, config))
+}
+
 var msgID = uuid
 
 // uuid generates a "good enough" uuid without adding external dependencies
