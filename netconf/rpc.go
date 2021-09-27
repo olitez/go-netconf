@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/beevik/etree"
 )
 
 const (
@@ -62,21 +64,47 @@ func (m *RPCMessage) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 // RPCReply defines a reply to a RPC request
 type RPCReply struct {
-	XMLName          xml.Name   `xml:"rpc-reply"`
-	Errors           []RPCError `xml:"rpc-error,omitempty"`
-	LoadConfigErrors []RPCError `xml:"load-configuration-results>rpc-error,omitempty"`
-	Data             string     `xml:",innerxml"`
-	Ok               bool       `xml:",omitempty"`
-	RawReply         string     `xml:"-"`
-	MessageID        string     `xml:"-"`
+	Errors    []RPCError
+	Data      *etree.Document
+	Ok        bool
+	MessageID string
 }
 
 func newRPCReply(rawXML []byte, ErrOnWarning bool, messageID string) (*RPCReply, error) {
-	reply := &RPCReply{}
-	reply.RawReply = string(rawXML)
+	reply := &RPCReply{
+		Data: etree.NewDocument(),
+	}
 
-	if err := xml.Unmarshal(rawXML, reply); err != nil {
+	if err := reply.Data.ReadFromBytes(rawXML); err != nil {
 		return nil, err
+	}
+
+	if reply.Data.FindElement("//ok") != nil {
+		reply.Ok = true
+	}
+
+	if root := reply.Data.FindElement("rpc-reply").ChildElements()[0]; root == nil {
+		return nil, fmt.Errorf("can't find root")
+	} else {
+		reply.Data.SetRoot(root)
+	}
+
+	safeText := func(el *etree.Element) string {
+		if el == nil {
+			return ""
+		}
+		return el.Text()
+	}
+
+	for _, rpcErr := range reply.Data.FindElements("//rpc-error") {
+
+		reply.Errors = append(reply.Errors, RPCError{
+			Type:     safeText(rpcErr.FindElement("error-type")),
+			Tag:      safeText(rpcErr.FindElement("error-tag")),
+			Severity: safeText(rpcErr.FindElement("error-severity")),
+			Path:     safeText(rpcErr.FindElement("error-path")),
+			Message:  safeText(rpcErr.FindElement("error-message")),
+		})
 	}
 
 	// will return a valid reply so setting Requests message id
@@ -100,7 +128,6 @@ type RPCError struct {
 	Severity string `xml:"error-severity"`
 	Path     string `xml:"error-path"`
 	Message  string `xml:"error-message"`
-	Info     string `xml:",innerxml"`
 }
 
 // Error generates a string representation of the provided RPC error
