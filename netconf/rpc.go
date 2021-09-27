@@ -12,6 +12,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"strings"
 )
 
 const (
@@ -61,12 +62,13 @@ func (m *RPCMessage) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
 // RPCReply defines a reply to a RPC request
 type RPCReply struct {
-	XMLName   xml.Name   `xml:"rpc-reply"`
-	Errors    []RPCError `xml:"rpc-error,omitempty"`
-	Data      string     `xml:",innerxml"`
-	Ok        bool       `xml:",omitempty"`
-	RawReply  string     `xml:"-"`
-	MessageID string     `xml:"-"`
+	XMLName          xml.Name   `xml:"rpc-reply"`
+	Errors           []RPCError `xml:"rpc-error,omitempty"`
+	LoadConfigErrors []RPCError `xml:"load-configuration-results>rpc-error,omitempty"`
+	Data             string     `xml:",innerxml"`
+	Ok               bool       `xml:",omitempty"`
+	RawReply         string     `xml:"-"`
+	MessageID        string     `xml:"-"`
 }
 
 func newRPCReply(rawXML []byte, ErrOnWarning bool, messageID string) (*RPCReply, error) {
@@ -103,7 +105,7 @@ type RPCError struct {
 
 // Error generates a string representation of the provided RPC error
 func (re *RPCError) Error() string {
-	return fmt.Sprintf("netconf rpc [%s] '%s'", re.Severity, re.Message)
+	return fmt.Sprintf("netconf rpc [%s] '%s'", re.Severity, strings.TrimSpace(re.Message))
 }
 
 // RPCMethod defines the interface for creating an RPC method.
