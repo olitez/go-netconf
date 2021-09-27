@@ -57,7 +57,7 @@ func (t *TransportSSH) Close() error {
 	if t.sshClient != nil {
 		return t.sshClient.Close()
 	}
-	return fmt.Errorf("No connection to close")
+	return fmt.Errorf("no connection to close")
 }
 
 // Dial connects and establishes SSH sessions
