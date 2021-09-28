@@ -40,6 +40,33 @@ func NewRPCMessage(methods []RPCMethod) *RPCMessage {
 	}
 }
 
+func (m *RPCMessage) Exec(s *Session) (*RPCReply, error) {
+	request, err := xml.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	header := []byte(xml.Header)
+	request = append(header, request...)
+
+	err = s.Transport.Send(request)
+	if err != nil {
+		return nil, err
+	}
+
+	rawXML, err := s.Transport.Receive()
+	if err != nil {
+		return nil, err
+	}
+
+	reply, err := newRPCReply(rawXML, s.ErrOnWarning, m.MessageID)
+	if err != nil {
+		return nil, err
+	}
+
+	return reply, nil
+}
+
 // MarshalXML marshals the NETCONF XML data
 func (m *RPCMessage) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	var buf bytes.Buffer

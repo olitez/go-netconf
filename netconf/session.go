@@ -11,7 +11,6 @@ Package netconf provides support for a a simple NETCONF client based on RFC6241 
 package netconf
 
 import (
-	"encoding/xml"
 	"strings"
 )
 
@@ -30,32 +29,7 @@ func (s *Session) Close() error {
 
 // Exec is used to execute an RPC method or methods
 func (s *Session) Exec(methods ...RPCMethod) (*RPCReply, error) {
-	rpc := NewRPCMessage(methods)
-
-	request, err := xml.Marshal(rpc)
-	if err != nil {
-		return nil, err
-	}
-
-	header := []byte(xml.Header)
-	request = append(header, request...)
-
-	err = s.Transport.Send(request)
-	if err != nil {
-		return nil, err
-	}
-
-	rawXML, err := s.Transport.Receive()
-	if err != nil {
-		return nil, err
-	}
-
-	reply, err := newRPCReply(rawXML, s.ErrOnWarning, rpc.MessageID)
-	if err != nil {
-		return nil, err
-	}
-
-	return reply, nil
+	return NewRPCMessage(methods).Exec(s)
 }
 
 // NewSession creates a new NETCONF session using the provided transport layer.
