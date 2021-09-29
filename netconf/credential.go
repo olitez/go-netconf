@@ -28,14 +28,14 @@ func (p PlainPassword) Config() *ssh.ClientConfig {
 //PublicKey privat-public key login credential
 type PublicKey struct {
 	User string
-	Key  []byte
+	File string
 }
 
 func (p PublicKey) String() string { return fmt.Sprintf("%s public key", p.User) }
 
 //Config build an ssh.ClientConfig from credential
 func (p PublicKey) Config() *ssh.ClientConfig {
-	cfg, err := SSHConfigPubKeyFile(p.User, p.Key)
+	cfg, err := SSHConfigPubKeyFile(p.User, p.File)
 	if err != nil {
 		panic(err)
 	}

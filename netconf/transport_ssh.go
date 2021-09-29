@@ -8,6 +8,7 @@ package netconf
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"strings"
@@ -173,12 +174,16 @@ func SSHConfigPassword(user string, pass string) *ssh.ClientConfig {
 
 // SSHConfigPubKeyFile is a convenience function that takes a username and private key
 // and returns a new ssh.ClientConfig setup to pass credentials to DialSSH
-func SSHConfigPubKeyFile(user string, key []byte) (*ssh.ClientConfig, error) {
-	if len(key) == 0 {
+func SSHConfigPubKeyFile(user string, file string) (*ssh.ClientConfig, error) {
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	if len(buf) == 0 {
 		return nil, fmt.Errorf("no key")
 	}
 
-	parsedKey, err := ssh.ParsePrivateKey(key)
+	parsedKey, err := ssh.ParsePrivateKey(buf)
 	if err != nil {
 		return nil, err
 	}
@@ -187,6 +192,7 @@ func SSHConfigPubKeyFile(user string, key []byte) (*ssh.ClientConfig, error) {
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(parsedKey),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}, nil
 
 }
